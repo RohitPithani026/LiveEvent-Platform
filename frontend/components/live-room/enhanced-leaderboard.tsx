@@ -22,7 +22,7 @@ interface EnhancedLeaderboardProps {
     eventId: string
 }
 
-export function EnhancedLeaderboard({ eventId }: EnhancedLeaderboardProps) {
+export function EnhancedLeaderboard({}: EnhancedLeaderboardProps) {
     const [players, setPlayers] = useState<Player[]>([])
     const [timeframe, setTimeframe] = useState<"current" | "alltime">("current")
 

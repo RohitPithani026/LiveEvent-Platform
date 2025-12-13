@@ -18,7 +18,6 @@ import {
     ArrowLeft,
     ArrowRight,
     Check,
-    Upload,
     MessageSquare,
     HelpCircle,
     BarChart3,
@@ -27,7 +26,6 @@ import {
     Users,
     Clock,
 } from "lucide-react"
-import { useSession } from "@/node_modules/next-auth/react"
 
 interface EventFeature {
     id: string
@@ -38,8 +36,6 @@ interface EventFeature {
 }
 
 export default function EventBuilderPage() {
-    const { data: session } = useSession()
-    const user = session?.user
     //const { user } = useAuth()
     const router = useRouter()
     const { toast } = useToast()
@@ -158,7 +154,7 @@ export default function EventBuilderPage() {
                     variant: "destructive",
                 })
             }
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Something went wrong. Please try again.",

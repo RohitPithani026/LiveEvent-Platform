@@ -33,6 +33,11 @@ export function LivePolls({ eventId }: LivePollsProps) {
                     const data = await response.json()
                     if (data.poll) {
                         setCurrentPoll(data.poll)
+                        // Check if user has already voted
+                        if (data.hasVoted) {
+                            setHasVoted(true)
+                            setSelectedOption(data.userVote)
+                        }
                     }
                 }
             } catch (error) {
@@ -76,27 +81,67 @@ export function LivePolls({ eventId }: LivePollsProps) {
     // Convert responses from counts to proper format
     const getVoteCount = (optionIndex: number): number => {
         if (!currentPoll || !currentPoll.responses) return 0
-        const responses = currentPoll.responses as any
+        const responses = currentPoll.responses as Record<string, number>
         return responses[optionIndex.toString()] || 0
     }
 
-    const vote = () => {
+    const vote = async () => {
         if (selectedOption === null || !currentPoll || hasVoted) return
 
-        setHasVoted(true)
+        try {
+            // Submit vote via API
+            const response = await fetch(`/api/events/${eventId}/polls`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    pollId: currentPoll.id,
+                    optionId: selectedOption,
+                }),
+            })
 
-        if (socket) {
-            socket.emit("poll-response", {
-                eventId,
-                pollId: currentPoll.id,
-                optionId: selectedOption.toString(),
+            if (response.ok) {
+                setHasVoted(true)
+
+                // Also emit via socket for real-time updates
+                if (socket) {
+                    socket.emit("poll-response", {
+                        eventId,
+                        pollId: currentPoll.id,
+                        optionId: selectedOption.toString(),
+                    })
+                }
+
+                toast({
+                    title: "Vote Submitted",
+                    description: "Your vote has been recorded!",
+                })
+
+                // Refresh poll data to get updated vote counts
+                const pollResponse = await fetch(`/api/events/${eventId}/polls`)
+                if (pollResponse.ok) {
+                    const pollData = await pollResponse.json()
+                    if (pollData.poll) {
+                        setCurrentPoll(pollData.poll)
+                    }
+                }
+            } else {
+                const errorData = await response.json()
+                toast({
+                    title: "Failed to submit vote",
+                    description: errorData.error || "Please try again.",
+                    variant: "destructive",
+                })
+            }
+        } catch (error) {
+            console.error("Failed to submit vote:", error)
+            toast({
+                title: "Error",
+                description: "Failed to submit vote. Please try again.",
+                variant: "destructive",
             })
         }
-
-        toast({
-            title: "Vote Submitted",
-            description: "Your vote has been recorded!",
-        })
     }
 
     if (!currentPoll) {

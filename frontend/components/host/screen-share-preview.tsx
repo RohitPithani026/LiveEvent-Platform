@@ -15,7 +15,7 @@ interface ScreenSharePreviewProps {
 }
 
 export function ScreenSharePreview({ eventId, isHost, onSharingChange, autoStart = false }: ScreenSharePreviewProps) {
-  const { isSharing, stream, error, videoRef, startScreenShare, stopScreenShare } = useScreenShare(eventId, isHost)
+  const { isSharing, error, videoRef, startScreenShare, stopScreenShare } = useScreenShare(eventId, isHost)
 
   // Expose start/stop functions via ref or callback
   useEffect(() => {
@@ -36,7 +36,7 @@ export function ScreenSharePreview({ eventId, isHost, onSharingChange, autoStart
   // Expose functions to parent via window (for goLive integration)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any)[`screenShare_${eventId}`] = {
+      (window as unknown as Record<string, unknown>)[`screenShare_${eventId}`] = {
         start: startScreenShare,
         stop: stopScreenShare,
         isSharing,
@@ -44,7 +44,7 @@ export function ScreenSharePreview({ eventId, isHost, onSharingChange, autoStart
     }
     return () => {
       if (typeof window !== 'undefined') {
-        delete (window as any)[`screenShare_${eventId}`]
+        delete (window as unknown as Record<string, unknown>)[`screenShare_${eventId}`]
       }
     }
   }, [eventId, startScreenShare, stopScreenShare, isSharing])

@@ -74,19 +74,26 @@ export function EnhancedChat({ eventId, isHost = false }: EnhancedChatProps) {
                 socket.emit("join-room", eventId);
             };
 
-            const handleNewMessage = (message: any) => {
+            const handleNewMessage = (message: unknown) => {
+                const msg = message as { id?: string; content?: string; user?: { name?: string; id?: string; role?: string }; timestamp?: string; userId?: string; isModerated?: boolean };
                 // Normalize message format to ensure user object exists
                 const normalizedMessage: Message = {
-                    id: message.id || Date.now().toString(),
-                    content: message.content || message.message || "",
-                    user: message.user || {
-                        name: message.userName || message.user?.name || "Anonymous",
-                        role: message.user?.role || message.role || "PARTICIPANT",
-                        id: message.user?.id || message.userId || "anonymous",
-                    },
-                    timestamp: message.timestamp || new Date().toISOString(),
-                    reactions: message.reactions || {},
-                    isModerated: message.isModerated || false,
+                    id: msg.id || Date.now().toString(),
+                    content: msg.content || "",
+                    user: msg.user && msg.user.name && msg.user.id && msg.user.role
+                        ? {
+                            name: msg.user.name,
+                            role: msg.user.role,
+                            id: msg.user.id,
+                        }
+                        : {
+                            name: msg.user?.name || "Anonymous",
+                            role: msg.user?.role || "PARTICIPANT",
+                            id: msg.user?.id || msg.userId || "anonymous",
+                        },
+                    timestamp: msg.timestamp || new Date().toISOString(),
+                    reactions: {},
+                    isModerated: msg.isModerated || false,
                 };
                 setMessages((prev) => {
                     // Avoid duplicate messages

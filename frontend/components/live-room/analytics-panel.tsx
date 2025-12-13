@@ -11,7 +11,7 @@ interface AnalyticsPanelProps {
     eventId: string
 }
 
-export function AnalyticsPanel({ eventId }: AnalyticsPanelProps) {
+export function AnalyticsPanel({}: AnalyticsPanelProps) {
     const [analytics, setAnalytics] = useState({
         totalParticipants: 0,
         activeParticipants: 0,
@@ -29,12 +29,12 @@ export function AnalyticsPanel({ eventId }: AnalyticsPanelProps) {
         activeUsers: 0,
     })
 
-    const [pollResults, setPollResults] = useState([
+    const [pollResults] = useState([
         { question: "What's your experience level?", responses: { Beginner: 45, Intermediate: 32, Advanced: 23 } },
         { question: "Preferred learning format?", responses: { Video: 67, Text: 18, Interactive: 15 } },
     ])
 
-    const [quizResults, setQuizResults] = useState([
+    const [quizResults] = useState([
         { question: "What is React?", correctRate: 78, totalResponses: 156 },
         { question: "Explain useState", correctRate: 65, totalResponses: 142 },
         { question: "What is JSX?", correctRate: 89, totalResponses: 134 },

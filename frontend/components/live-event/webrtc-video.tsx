@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Volume2, VolumeX, Maximize, Minimize, Settings, Users, Wifi, WifiOff } from "lucide-react"
+import { Volume2, VolumeX, Maximize, Minimize, Users, Wifi, WifiOff } from "lucide-react"
 
 interface WebRTCVideoProps {
     isHost?: boolean
@@ -18,7 +18,7 @@ export function WebRTCVideo({ eventTitle, eventId, onViewerCountChange }: WebRTC
     const [isMuted, setIsMuted] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [viewerCount, setViewerCount] = useState(1247)
-    const [connectionQuality, setConnectionQuality] = useState<"excellent" | "good" | "poor">("excellent")
+    const [connectionQuality] = useState<"excellent" | "good" | "poor">("excellent")
     const videoRef = useRef<HTMLVideoElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -44,6 +44,16 @@ export function WebRTCVideo({ eventTitle, eventId, onViewerCountChange }: WebRTC
 
         connectToStream()
     }, [eventId, viewerCount, onViewerCountChange])
+
+    useEffect(() => {
+        // Listen for fullscreen changes
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement)
+        }
+
+        document.addEventListener("fullscreenchange", handleFullscreenChange)
+        return () => document.removeEventListener("fullscreenchange", handleFullscreenChange)
+    }, [])
 
     const toggleFullscreen = () => {
         if (!containerRef.current) return
@@ -113,7 +123,7 @@ export function WebRTCVideo({ eventTitle, eventId, onViewerCountChange }: WebRTC
                 {isConnected && (
                     <div className="absolute bottom-6 left-6 text-white">
                         <h3 className="text-xl font-semibold mb-1">Dr. Sarah Johnson</h3>
-                        <p className="text-white/80">"{eventTitle}"</p>
+                        <p className="text-white/80">&quot;{eventTitle}&quot;</p>
                     </div>
                 )}
 

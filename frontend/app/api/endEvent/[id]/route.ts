@@ -22,10 +22,10 @@ export async function PATCH(
         let user;
         try {
             user = await getCurrentUser(token);
-        } catch (dbError: any) {
+        } catch (dbError: unknown) {
             return NextResponse.json({ 
                 error: "Database error", 
-                details: dbError.message || "Failed to fetch user from database"
+                details: dbError instanceof Error ? dbError.message : "Failed to fetch user from database"
             }, { status: 500 });
         }
 
@@ -41,10 +41,10 @@ export async function PATCH(
                 email: user.email,
                 role: user.role,
             });
-        } catch (tokenError: any) {
+        } catch (tokenError: unknown) {
             return NextResponse.json({ 
                 error: "Token generation failed", 
-                details: tokenError.message 
+                details: tokenError instanceof Error ? tokenError.message : "Unknown error"
             }, { status: 500 });
         }
 
@@ -58,9 +58,12 @@ export async function PATCH(
                     "Authorization": `Bearer ${backendToken}`,
                 },
             });
-        } catch (fetchError: any) {
+        } catch (fetchError: unknown) {
             // Check if it's a connection error
-            if (fetchError.code === "ECONNREFUSED" || fetchError.message?.includes("fetch failed")) {
+            const isConnectionError = fetchError instanceof Error && 
+                (('code' in fetchError && fetchError.code === "ECONNREFUSED") || 
+                 fetchError.message?.includes("fetch failed"));
+            if (isConnectionError) {
                 return NextResponse.json({ 
                     error: "Backend service is not running. Please start the gRPC service on port 4001.",
                     details: `Failed to connect to ${BACKEND_URL}`,
@@ -89,10 +92,10 @@ export async function PATCH(
 
         const data = await response.json();
         return NextResponse.json({ success: true, ...data }, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json({ 
             error: "Internal server error",
-            details: error.message || "An unexpected error occurred"
+            details: error instanceof Error ? error.message : "An unexpected error occurred"
         }, { status: 500 });
     }
 }

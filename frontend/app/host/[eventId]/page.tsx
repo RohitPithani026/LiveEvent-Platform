@@ -27,10 +27,8 @@ import {
     MicOff,
     Video,
     VideoOff,
-    Share,
     Plus,
     Eye,
-    Clock,
     Settings,
 } from "lucide-react"
 import { ScreenSharePreview } from "@/components/host/screen-share-preview"
@@ -67,8 +65,12 @@ interface Event {
 
 interface Participant {
     id: string
+    userId: string
     name: string
+    email?: string
+    image?: string
     joined: string
+    joinedAt?: string
     status: "active" | "idle"
 }
 
@@ -180,21 +182,18 @@ export default function HostControlPage() {
     // Fetch participants
     useEffect(() => {
         const fetchParticipants = async () => {
-            if (!params.eventId || !isLive) return;
+            if (!params.eventId) return;
             
             try {
-                const response = await fetch(`/api/events/${params.eventId}`);
+                const response = await fetch(`/api/events/${params.eventId}/participants`);
                 if (response.ok) {
                     const data = await response.json();
-                    const participantCount = data.event?._count?.participants || 0;
-                    setParticipantCount(participantCount);
-                    
-                    // For now, we'll use a simplified participant list
-                    // In a real implementation, you'd fetch from an API endpoint
-                    setParticipants([
-                        { id: "1", name: "Participant 1", joined: new Date().toLocaleTimeString(), status: "active" },
-                        { id: "2", name: "Participant 2", joined: new Date().toLocaleTimeString(), status: "active" },
-                    ]);
+                    setParticipants(data.participants || []);
+                    setParticipantCount(data.count || 0);
+                } else if (response.status === 403) {
+                    // User is not the host, don't show participants
+                    setParticipants([]);
+                    setParticipantCount(0);
                 }
             } catch (error) {
                 console.error("Failed to fetch participants:", error);
@@ -204,7 +203,7 @@ export default function HostControlPage() {
         fetchParticipants();
         const interval = setInterval(fetchParticipants, 5000);
         return () => clearInterval(interval);
-    }, [params.eventId, isLive]);
+    }, [params.eventId]);
 
     // Fetch messages
     useEffect(() => {
@@ -219,13 +218,16 @@ export default function HostControlPage() {
                     setMessageCount(messages.length);
                     
                     // Format messages for display
-                    const formattedMessages: ChatMessage[] = messages.slice(-10).map((msg: any, index: number) => ({
-                        id: msg.id || `msg-${index}`,
-                        user: msg.user?.name || "Unknown",
-                        message: msg.content || "",
-                        time: new Date(msg.timestamp).toLocaleTimeString(),
-                        flagged: false, // You can implement flagging logic
-                    }));
+                    const formattedMessages: ChatMessage[] = messages.slice(-10).map((msg: unknown, index: number) => {
+                        const message = msg as { id?: string; user?: { name?: string }; content?: string; timestamp?: string; flagged?: boolean };
+                        return {
+                            id: message.id || `msg-${index}`,
+                            user: message.user?.name || "Unknown",
+                            message: message.content || "",
+                            time: message.timestamp ? new Date(message.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString(),
+                            flagged: message.flagged || false,
+                        };
+                    });
                     setChatMessages(formattedMessages);
                 }
             } catch (error) {
@@ -275,12 +277,15 @@ export default function HostControlPage() {
                 if (response.ok) {
                     const data = await response.json();
                     const questions = data.questions || [];
-                    setPendingQuestions(questions.map((q: any) => ({
-                        id: q.id,
-                        question: q.question,
-                        user: q.user?.name || "Anonymous",
-                        approved: q.approved,
-                    })));
+                    setPendingQuestions(questions.map((q: unknown) => {
+                        const question = q as { id: string; question: string; user?: { name?: string } | string; approved?: boolean };
+                        return {
+                            id: question.id,
+                            question: question.question,
+                            user: typeof question.user === 'string' ? question.user : question.user?.name || "Anonymous",
+                            approved: question.approved || false,
+                        };
+                    }));
                 }
             } catch (error) {
                 console.error("Failed to fetch Q&A questions:", error);
@@ -298,13 +303,19 @@ export default function HostControlPage() {
     useEffect(() => {
         if (!socket || !qaEnabled) return;
 
-        const handleQuestionSubmitted = (data: any) => {
+        const handleQuestionSubmitted = (data: unknown) => {
+            const questionData = data as { id?: string; question?: string; user?: string; approved?: boolean };
             setPendingQuestions((prev) => {
                 // Avoid duplicates
-                if (prev.some(q => q.id === data.id)) {
+                if (prev.some(q => q.id === questionData.id)) {
                     return prev
                 }
-                return [data, ...prev]
+                return [{
+                    id: questionData.id || Date.now().toString(),
+                    question: questionData.question || "",
+                    user: questionData.user || "Unknown",
+                    approved: questionData.approved || false,
+                }, ...prev]
             })
         }
 
@@ -375,7 +386,7 @@ export default function HostControlPage() {
                     variant: "destructive",
                 });
             }
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Failed to go live",
@@ -439,7 +450,7 @@ export default function HostControlPage() {
                     variant: "destructive",
                 });
             }
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Failed to end event",
@@ -1086,9 +1097,27 @@ export default function HostControlPage() {
                                                     key={participant.id}
                                                     className="flex items-center justify-between p-3 rounded-xl card-hover glass-card"
                                                 >
-                                                    <div>
-                                                        <div className="font-medium text-white">{participant.name}</div>
-                                                        <div className="text-sm text-subtle">Joined {participant.joined}</div>
+                                                    <div className="flex items-center gap-3">
+                                                        {participant.image ? (
+                                                            <img
+                                                                src={participant.image}
+                                                                alt={participant.name}
+                                                                className="w-10 h-10 rounded-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold">
+                                                                {participant.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <div className="font-medium text-white">{participant.name}</div>
+                                                            <div className="text-sm text-subtle">
+                                                                Joined {new Date(participant.joinedAt || participant.joined).toLocaleTimeString()}
+                                                            </div>
+                                                            {participant.email && (
+                                                                <div className="text-xs text-subtle/70">{participant.email}</div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <Badge
                                                         variant={participant.status === "active" ? "default" : "secondary"}

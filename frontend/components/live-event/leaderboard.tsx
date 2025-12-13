@@ -9,7 +9,7 @@ interface LeaderboardProps {
     currentUserScore: number
 }
 
-export function Leaderboard({ eventId, currentUserScore }: LeaderboardProps) {
+export function Leaderboard({ currentUserScore }: LeaderboardProps) {
     const leaderboard = [
         { id: "1", name: "TechGuru", score: 850, rank: 1, badges: ["🏆", "⚡"] },
         { id: "2", name: "CodeMaster", score: 720, rank: 2, badges: ["🎯", "💎"] },

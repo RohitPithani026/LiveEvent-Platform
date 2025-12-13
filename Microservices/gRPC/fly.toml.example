@@ -1,0 +1,35 @@
+app = "your-app-grpc"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  GRPC_PORT = "50051"
+  HTTP_PORT = "4001"
+
+[[services]]
+  internal_port = 50051
+  protocol = "tcp"
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 50051
+    handlers = ["tls", "http"]
+
+[[services]]
+  internal_port = 4001
+  protocol = "tcp"
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 4001
+    handlers = ["tls", "http"]
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+

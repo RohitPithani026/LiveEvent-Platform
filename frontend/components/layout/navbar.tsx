@@ -14,7 +14,6 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Settings, LogOut, User, Shield, Mic } from "lucide-react"
 import { AvatarImage } from "@radix-ui/react-avatar"
 
@@ -22,7 +21,6 @@ export function Navbar() {
     const { data: session } = useSession()
     const user = session?.user
     //const { user, logout } = useAuth()
-    const router = useRouter()
 
     const handleLogout = () => {
         signOut({ callbackUrl: "/auth" })

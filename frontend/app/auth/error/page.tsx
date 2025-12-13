@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { AlertTriangle, ArrowLeft, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 
-export default function AuthError() {
+function AuthErrorContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const { toast } = useToast()
@@ -93,5 +93,17 @@ export default function AuthError() {
                 </div>
             </main>
         </div>
+    )
+}
+
+export default function AuthError() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="text-white">Loading...</div>
+            </div>
+        }>
+            <AuthErrorContent />
+        </Suspense>
     )
 }

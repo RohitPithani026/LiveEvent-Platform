@@ -24,7 +24,6 @@ import {
 } from "lucide-react"
 //import { useAuth } from "@/components/providers/auth-provider"
 import { Navbar } from "@/components/layout/navbar"
-import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { useSession } from "@/node_modules/next-auth/react"
 
@@ -33,7 +32,6 @@ export default function AdminDashboard() {
     const { data: session } = useSession()
     const user = session?.user
     //const { user } = useAuth()
-    const { toast } = useToast()
 
     const stats = [
         {
@@ -155,7 +153,7 @@ export default function AdminDashboard() {
                 <div className="container mx-auto px-4 py-8">
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-white mb-4">Access Denied</h1>
-                        <p className="text-slate-400">You don't have permission to access this page.</p>
+                        <p className="text-slate-400">You don&apos;t have permission to access this page.</p>
                     </div>
                 </div>
             </div>

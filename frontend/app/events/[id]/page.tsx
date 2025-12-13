@@ -14,15 +14,11 @@ import Link from "next/link"
 import {
     Calendar,
     Users,
-    Play,
     Edit,
-    Share,
     Star,
     MapPin,
     Settings,
-    CalendarPlus,
     ArrowLeft,
-    CheckCircle,
     Heart,
     Share2,
 } from "lucide-react"
@@ -70,6 +66,7 @@ export default function EventDetailPage() {
         if (params.id) {
             fetchEvent(params.id as string);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [params?.id]);
 
     const fetchEvent = async (id: string) => {
@@ -178,7 +175,7 @@ export default function EventDetailPage() {
                     variant: "destructive",
                 })
             }
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Something went wrong. Please try again.",
@@ -213,7 +210,7 @@ export default function EventDetailPage() {
                 <div className="container mx-auto px-4 py-8">
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-white mb-4">Event Not Found</h1>
-                        <p className="text-slate-400">The event you're looking for doesn't exist.</p>
+                        <p className="text-slate-400">The event you&apos;re looking for doesn&apos;t exist.</p>
                     </div>
                 </div>
             </div>

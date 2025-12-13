@@ -4,18 +4,18 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Mic, MicOff, Video, VideoOff, Settings, Maximize2, Volume2, VolumeX } from "lucide-react"
+import { Mic, MicOff, Video, VideoOff, Settings, Maximize2, Minimize, Volume2, VolumeX } from "lucide-react"
 
 interface VideoStreamProps {
     eventId: string
     isHost?: boolean
 }
 
-export function VideoStream({ eventId, isHost = false }: VideoStreamProps) {
+export function VideoStream({ isHost = false }: VideoStreamProps) {
     const [isMuted, setIsMuted] = useState(false)
     const [isVideoOff, setIsVideoOff] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
-    const [volume, setVolume] = useState(100)
+    const [volume] = useState(100)
     const [viewerCount, setViewerCount] = useState(0)
 
     useEffect(() => {
@@ -25,6 +25,16 @@ export function VideoStream({ eventId, isHost = false }: VideoStreamProps) {
         }, 5000)
 
         return () => clearInterval(interval)
+    }, [])
+
+    useEffect(() => {
+        // Listen for fullscreen changes
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement)
+        }
+
+        document.addEventListener("fullscreenchange", handleFullscreenChange)
+        return () => document.removeEventListener("fullscreenchange", handleFullscreenChange)
     }, [])
 
     const toggleFullscreen = () => {
@@ -96,7 +106,7 @@ export function VideoStream({ eventId, isHost = false }: VideoStreamProps) {
                                     <Settings className="h-4 w-4" />
                                 </Button>
                                 <Button size="sm" variant="secondary" onClick={toggleFullscreen}>
-                                    <Maximize2 className="h-4 w-4" />
+                                    {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                                 </Button>
                             </div>
                         </div>

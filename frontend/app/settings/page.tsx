@@ -30,7 +30,6 @@ export default function SettingsPage() {
         setLoading(true)
 
         try {
-            const token = localStorage.getItem("token")
             const response = await fetch("/api/user/profile", {
                 method: "PATCH",
                 // headers: {
@@ -52,7 +51,7 @@ export default function SettingsPage() {
                     variant: "destructive",
                 })
             }
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Something went wrong. Please try again.",
@@ -106,7 +105,7 @@ export default function SettingsPage() {
                     variant: "destructive",
                 })
             }
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Something went wrong. Please try again.",

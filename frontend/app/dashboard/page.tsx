@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
-import { Calendar, Users, Play, Plus, Clock, TrendingUp, Video, Star, Trophy } from "lucide-react"
+import { Calendar, Users, Play, Plus, Clock, TrendingUp, Video, Trophy } from "lucide-react"
 import { useSession } from "@/node_modules/next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -36,7 +36,7 @@ export default function DashboardPage() {
     const { data: session } = useSession()
     const user = session?.user
     const [events, setEvents] = useState<Event[]>([])
-    const [stats, setStats] = useState<DashboardStats>({
+    const [stats] = useState<DashboardStats>({
         eventsAttended: 12,
         hoursWatched: 48,
         quizScore: 94,
@@ -49,6 +49,7 @@ export default function DashboardPage() {
 
     useEffect(() => {
         fetchDashboardData()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const fetchDashboardData = async () => {
@@ -129,7 +130,7 @@ export default function DashboardPage() {
                             {user?.name?.split(" ")[0] || "User"}!
                         </span>
                     </h1>
-                    <p className="text-xl text-slate-400">Here's what's happening with your events</p>
+                    <p className="text-xl text-slate-400">Here&apos;s what&apos;s happening with your events</p>
                 </div>
 
                 {/* Stats Grid */}
@@ -318,8 +319,8 @@ export default function DashboardPage() {
                                     </CardTitle>
                                     <CardDescription className="text-slate-400">
                                         {showCompletedOnly
-                                            ? "Events you’ve hosted recently"
-                                            : "Events you're hosting or coming your way"}
+                                            ? "Events you&apos;ve hosted recently"
+                                            : "Events you&apos;re hosting or coming your way"}
                                     </CardDescription>
                                 </div>
                                 <Button

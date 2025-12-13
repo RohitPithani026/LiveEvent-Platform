@@ -7,12 +7,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Calendar, Clock, Users, MapPin, Sparkles, Trophy, Heart, Share2, Star } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
-import { useSession } from "@/node_modules/next-auth/react"
 
 export default function PublicEventPage() {
     const [isLiked, setIsLiked] = useState(false)
-    const { data: session } = useSession()
-    const user = session?.user
 
     return (
         <div className="min-h-screen">
@@ -143,7 +140,7 @@ export default function PublicEventPage() {
                                     <div>
                                         <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
                                             <Trophy className="w-5 h-5 mr-2 text-primary" />
-                                            What's Included
+                                            What&apos;s Included
                                         </h3>
                                         <div className="grid md:grid-cols-2 gap-3">
                                             {[

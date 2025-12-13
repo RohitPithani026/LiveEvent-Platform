@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { usePageTracking, useEngagementTracking } from "@/hooks/use-analytics"
+import { usePageTracking } from "@/hooks/use-analytics"
 import { AnalyticsWidget } from "@/components/analytics/analytics-widget"
 import { ScreenShareViewer } from "@/components/live-room/screen-share-viewer"
 import { QuizEngine } from "@/components/live-event/quiz-engine"
@@ -108,7 +108,7 @@ export default function LiveEventRoom() {
     useEffect(() => {
         if (!socket) return;
 
-        const handleEventEnded = (data: any) => {
+        const handleEventEnded = () => {
             setEventEnded(true);
             if (event) {
                 setEvent({ ...event, isLive: false, completedEvent: true });
@@ -132,7 +132,7 @@ export default function LiveEventRoom() {
     }, [socket, event, eventId, router, toast]);
 
     usePageTracking("live_event_room", { eventId })
-    const { trackInteraction, trackEngagement } = useEngagementTracking(eventId)
+    // const { trackInteraction, trackEngagement } = useEngagementTracking(eventId)
 
     if (loading) {
         return (
@@ -155,7 +155,7 @@ export default function LiveEventRoom() {
                 <div className="container mx-auto px-4 py-8">
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-white mb-4">Event Not Found</h1>
-                        <p className="text-slate-400">The event you're looking for doesn't exist.</p>
+                        <p className="text-slate-400">The event you&apos;re looking for doesn&apos;t exist.</p>
                     </div>
                 </div>
             </div>
@@ -173,7 +173,7 @@ export default function LiveEventRoom() {
                             </div>
                             <h1 className="text-3xl font-bold text-white mb-2">Event Has Ended</h1>
                             <p className="text-slate-400 mb-6">
-                                The live event "{event.title}" has been ended by the host.
+                                The live event &quot;{event.title}&quot; has been ended by the host.
                             </p>
                         </div>
                         <div className="flex gap-4 justify-center">

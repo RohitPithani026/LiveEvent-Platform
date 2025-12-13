@@ -61,7 +61,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
                     setIsConnected(true)
                 })
 
-                socketInstance.on("disconnect", (reason) => {
+                socketInstance.on("disconnect", () => {
                     setIsConnected(false)
                 })
 

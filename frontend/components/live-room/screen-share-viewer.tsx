@@ -55,6 +55,7 @@ export function ScreenShareViewer({ eventId }: ScreenShareViewerProps) {
       video.removeEventListener("pause", handlePause)
       video.removeEventListener("loadedmetadata", handleLoadedMetadata)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReceiving, stream])
 
   const handlePlayClick = () => {

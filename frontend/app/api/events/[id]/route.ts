@@ -108,7 +108,7 @@ export async function PUT(
         })
 
         return NextResponse.json(updatedEvent);
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }
@@ -146,7 +146,7 @@ export async function DELETE(
         })
 
         return NextResponse.json({ message: "Event delete successfully" });
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
 }

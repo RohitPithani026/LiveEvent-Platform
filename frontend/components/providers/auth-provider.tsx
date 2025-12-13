@@ -3,10 +3,10 @@
 import type React from "react"
 import { SessionProvider } from "@/node_modules/next-auth/react"
 import { useToast } from "@/hooks/use-toast"
-import { useEffect } from "react"
+import { useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+function AuthErrorHandler() {
     const { toast } = useToast()
     const searchParams = useSearchParams()
     const error = searchParams.get("error")
@@ -54,5 +54,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [error, toast])
 
-    return <SessionProvider>{children}</SessionProvider>
+    return null
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+    return (
+        <SessionProvider>
+            <Suspense fallback={null}>
+                <AuthErrorHandler />
+            </Suspense>
+            {children}
+        </SessionProvider>
+    )
 }

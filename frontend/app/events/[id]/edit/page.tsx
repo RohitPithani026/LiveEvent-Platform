@@ -12,16 +12,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import {
-    ArrowLeft,
     Save,
     Trash2,
-    Upload,
     Calendar,
     Clock,
-    Users,
     ImageIcon,
     AlertTriangle,
-    Sparkles,
 } from "lucide-react"
 import Link from "next/link"
 import { useSession } from "@/node_modules/next-auth/react"
@@ -69,6 +65,7 @@ export default function EditEventPage() {
         if (params.id) {
             fetchEvent(params.id as string)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [params?.id]);
 
 
@@ -154,7 +151,7 @@ export default function EditEventPage() {
         try {
             new URL(string)
             return true
-        } catch (_) {
+        } catch {
             return false
         }
     }
@@ -270,7 +267,7 @@ export default function EditEventPage() {
                 <Navbar />
                 <div className="container mx-auto px-4 py-8 text-center">
                     <h1 className="text-2xl font-bold text-white mb-4">Event Not Found</h1>
-                    <p className="text-slate-400 mb-6">The event you're looking for doesn't exist.</p>
+                    <p className="text-slate-400 mb-6">The event you&apos;re looking for doesn&apos;t exist.</p>
                     <Link href="/dashboard">
                         <Button className="bg-purple-600 hover:bg-purple-700">Back to Dashboard</Button>
                     </Link>

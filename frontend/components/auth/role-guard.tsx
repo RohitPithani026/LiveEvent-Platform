@@ -17,7 +17,7 @@ export function RoleGuard({ allowedRoles, children, redirectTo = "/dashboard" }:
     const { data: session } = useSession()
     const user = session?.user
     const router = useRouter()
-    const [loading, setLoading] = useState();
+    const [loading] = useState(false);
 
     useEffect(() => {
         if (!loading && user) {

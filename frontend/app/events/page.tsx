@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { HostControlButton } from "@/components/events/host-control-button"
 import Link from "next/link"
 import { Calendar, Users, Search, Filter, Play, MapPin, Heart, Share2 } from "lucide-react"
-import { useSession } from "@/node_modules/next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 import { AvatarImage } from "@radix-ui/react-avatar"
 
@@ -40,8 +39,6 @@ interface Event {
 }
 
 export default function EventsPage() {
-    const { data: session } = useSession()
-    const user = session?.user
     //const { user } = useAuth()
     const [events, setEvents] = useState<Event[]>([])
     const [loading, setLoading] = useState(true)
@@ -51,6 +48,7 @@ export default function EventsPage() {
 
     useEffect(() => {
         fetchEvents()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const fetchEvents = async () => {

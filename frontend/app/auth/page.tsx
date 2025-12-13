@@ -51,7 +51,7 @@ export default function AuthPage() {
                     variant: "destructive",
                 })
             }
-        } catch (error) {
+        } catch {
             toast({
                 title: "Error",
                 description: "Something went wrong. Please try again.",
@@ -132,7 +132,7 @@ export default function AuthPage() {
             await signIn(provider, {
                 callbackUrl: "/dashboard", // or any page after login
             })
-        } catch (error) {
+        } catch {
             toast({
                 title: "Authentication failed",
                 description: "Could not sign in with Google.",

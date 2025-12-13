@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { ThumbsUp } from "lucide-react"
 import { useSocket } from "@/components/providers/socket-provider"
 import { useToast } from "@/hooks/use-toast"
-import { useSession } from "next-auth/react"
 
 interface QAPanelProps {
     eventId: string
@@ -29,56 +28,84 @@ interface QAQuestion {
 export function QAPanel({ eventId }: QAPanelProps) {
     const { socket } = useSocket()
     const { toast } = useToast()
-    const { data: session } = useSession()
     const [question, setQuestion] = useState("")
     const [questions, setQuestions] = useState<QAQuestion[]>([])
 
+    const fetchQuestions = useCallback(async () => {
+        try {
+            const response = await fetch(`/api/events/${eventId}/questions`)
+            if (response.ok) {
+                const data = await response.json()
+                // Filter approved questions and deduplicate by ID
+                const approvedQuestionsMap = new Map<string, QAQuestion>();
+                data.questions
+                    .filter((q: unknown) => {
+                        const question = q as { approved?: boolean };
+                        return question.approved;
+                    })
+                    .forEach((q: unknown) => {
+                        const question = q as { 
+                            id: string; 
+                            question: string; 
+                            user: { id: string; name: string }; 
+                            approved: boolean;
+                        };
+                        if (!approvedQuestionsMap.has(question.id)) {
+                            approvedQuestionsMap.set(question.id, {
+                                id: question.id,
+                                question: question.question,
+                                user: {
+                                    id: question.user.id,
+                                    name: question.user.name,
+                                },
+                                approved: question.approved,
+                            });
+                        }
+                    });
+                setQuestions(Array.from(approvedQuestionsMap.values()))
+            }
+        } catch (error) {
+            console.error("Failed to fetch questions:", error)
+        }
+    }, [eventId])
+
     // Fetch approved questions from database on mount
     useEffect(() => {
-        const fetchQuestions = async () => {
-            try {
-                const response = await fetch(`/api/events/${eventId}/questions`)
-                if (response.ok) {
-                    const data = await response.json()
-                    // Filter to only show approved questions
-                    const approvedQuestions = data.questions
-                        .filter((q: any) => q.approved)
-                        .map((q: any) => ({
-                            id: q.id,
-                            question: q.question,
-                            user: {
-                                id: q.user.id,
-                                name: q.user.name,
-                            },
-                            approved: q.approved,
-                        }))
-                    setQuestions(approvedQuestions)
-                }
-            } catch (error) {
-                console.error("Failed to fetch questions:", error)
-            }
-        }
-
         fetchQuestions()
-    }, [eventId])
+    }, [fetchQuestions])
 
     useEffect(() => {
         if (!socket) return
 
         const handleQuestionSubmitted = (data: QAQuestion) => {
             setQuestions((prev) => {
-                // Avoid duplicates
+                // Avoid duplicates by ID
                 if (prev.some(q => q.id === data.id)) {
                     return prev
                 }
-                return [data, ...prev]
+                // Only add if approved
+                if (data.approved) {
+                    return [data, ...prev]
+                }
+                return prev
             })
         }
 
         const handleQuestionApproved = (data: { id: string; approved: boolean }) => {
-            setQuestions((prev) =>
-                prev.map((q) => (q.id === data.id ? { ...q, approved: data.approved } : q))
-            )
+            setQuestions((prev) => {
+                if (data.approved) {
+                    // If approved and not already in list, fetch it
+                    if (!prev.some(q => q.id === data.id)) {
+                        fetchQuestions()
+                    } else {
+                        return prev.map((q) => (q.id === data.id ? { ...q, approved: data.approved } : q))
+                    }
+                } else {
+                    // If unapproved, remove from list
+                    return prev.filter(q => q.id !== data.id)
+                }
+                return prev
+            })
         }
 
         socket.on("question-submitted", handleQuestionSubmitted)
@@ -88,9 +115,9 @@ export function QAPanel({ eventId }: QAPanelProps) {
             socket.off("question-submitted", handleQuestionSubmitted)
             socket.off("question-approved", handleQuestionApproved)
         }
-    }, [socket])
+    }, [socket, fetchQuestions])
 
-    const submitQuestion = () => {
+    const submitQuestion = async () => {
         if (!question.trim()) {
             toast({
                 title: "Invalid Question",
@@ -100,26 +127,54 @@ export function QAPanel({ eventId }: QAPanelProps) {
             return
         }
 
-        if (!socket) {
+        try {
+            // Submit question via API
+            const response = await fetch(`/api/events/${eventId}/questions`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    question: question.trim(),
+                }),
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                
+                // Also emit via socket for real-time updates
+                if (socket) {
+                    socket.emit("question-submitted", {
+                        eventId,
+                        question: question.trim(),
+                    })
+                }
+
+                toast({
+                    title: "Question Submitted",
+                    description: data.message || "Your question has been submitted and is pending approval.",
+                })
+
+                setQuestion("")
+
+                // Refresh questions list
+                await fetchQuestions()
+            } else {
+                const errorData = await response.json()
+                toast({
+                    title: "Failed to submit question",
+                    description: errorData.error || "Please try again.",
+                    variant: "destructive",
+                })
+            }
+        } catch (error) {
+            console.error("Failed to submit question:", error)
             toast({
-                title: "Connection Error",
-                description: "Socket not connected. Please refresh the page.",
+                title: "Error",
+                description: "Failed to submit question. Please try again.",
                 variant: "destructive",
             })
-            return
         }
-
-        socket.emit("question-submitted", {
-            eventId,
-            question: question.trim(),
-        })
-
-        toast({
-            title: "Question Submitted",
-            description: "Your question has been submitted and is pending approval.",
-        })
-
-        setQuestion("")
     }
 
     const approvedQuestions = questions.filter((q) => q.approved)
@@ -158,21 +213,21 @@ export function QAPanel({ eventId }: QAPanelProps) {
                                 <div className="flex items-start justify-between mb-2">
                                     <div className="flex-1">
                                         <p className="text-sm font-medium">{q.question}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                by {q.user?.name || "Anonymous"}
-                                            </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            by {q.user?.name || "Anonymous"}
+                                        </p>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                            {q.votes !== undefined && (
-                                        <Button variant="ghost" size="sm">
-                                            <ThumbsUp className="w-3 h-3 mr-1" />
-                                            {q.votes}
-                                        </Button>
-                                            )}
+                                        {q.votes !== undefined && (
+                                            <Button variant="ghost" size="sm">
+                                                <ThumbsUp className="w-3 h-3 mr-1" />
+                                                {q.votes}
+                                            </Button>
+                                        )}
                                         {q.answered && <Badge variant="secondary">Answered</Badge>}
-                                        </div>
                                     </div>
                                 </div>
+                            </div>
                             ))
                         )}
                     </div>
