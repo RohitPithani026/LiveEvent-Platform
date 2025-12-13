@@ -1,4 +1,4 @@
-app = "your-app-grpc"
+app = "LiveEventPlatformGRPC"
 primary_region = "iad"
 
 [build]
